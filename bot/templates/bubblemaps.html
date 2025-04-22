@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Top Traders Bubble Map</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0"></script> <!-- Add annotation plugin -->
+    <style>
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            max-width: 800px;
+            max-height: 600px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    {% if error %}
+        <p>{{ error }}</p>
+    {% else %}
+        <canvas id="bubbleMap"></canvas>
+        <script>
+            const ctx = document.getElementById('bubbleMap').getContext('2d');
+            const topTraders = {{ top_traders|safe }}; // Changed from traders to top_traders
+            const traderConnections = {{ trader_connections|safe }}; // Changed from connections to trader_connections
+
+            // Prepare bubble data for Chart.js
+            const bubbleData = Object.entries(topTraders).map(([address, volume], index) => ({
+                x: Math.random() * 100, // Random x position
+                y: Math.random() * 100, // Random y position
+                r: Math.min(Math.max(volume / 1000, 5), 30), // Bubble size based on volume
+                address: address
+            }));
+
+            // Prepare connections as annotations (lines)
+            const annotations = [];
+            Object.entries(traderConnections).forEach(([connection, count], index) => {
+                const [wallet1, wallet2] = connection.split('-');
+                const trader1 = bubbleData.find(b => b.address === wallet1);
+                const trader2 = bubbleData.find(b => b.address === wallet2);
+                if (trader1 && trader2) {
+                    annotations.push({
+                        type: 'line',
+                        xMin: trader1.x,
+                        yMin: trader1.y,
+                        xMax: trader2.x,
+                        yMax: trader2.y,
+                        borderColor: 'rgba(255, 99, 132, 0.5)',
+                        borderWidth: Math.min(count, 5),
+                        label: {
+                            content: `${count} transfers`,
+                            enabled: true,
+                            position: 'center'
+                        }
+                    });
+                }
+            });
+
+            // Create the bubble chart
+            new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Top Traders',
+                        data: bubbleData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        annotation: {
+                            annotations: annotations
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const data = context.raw;
+                                    return `${data.address}: $${data.r * 1000}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+        </script>
+    {% endif %}
+</body>
+</html>
