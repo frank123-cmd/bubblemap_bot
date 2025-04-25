@@ -229,11 +229,10 @@ bubblemaps-bot/
 
 5.  **Push to GitHub**:
     ```bash
-    git remote add origin [https://github.com/your-username/bubblemaps-bot.git](https://github.com/your-username/bubblemaps-bot.git)
+    git remote add origin https://github.com/hack3rvirus/Bubblemap-Bot.git
     git branch -M main
     git push -u origin main
     ```
-    *(Replace `your-username` and repository name)*
 
 ---
 
