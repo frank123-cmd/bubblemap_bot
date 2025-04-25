@@ -18,9 +18,8 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') \
-    && wget -q "https://chromedriver.storage.googleapis.com/$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION})/chromedriver_linux64.zip" \
+# Install ChromeDriver (pinned version)
+RUN wget -q "https://chromedriver.storage.googleapis.com/135.0.7049.81/chromedriver_linux64.zip" \
     && unzip chromedriver_linux64.zip \
     && mv chromedriver /usr/local/bin/ \
     && chmod +x /usr/local/bin/chromedriver \
@@ -45,5 +44,5 @@ RUN python manage.py collectstatic --noinput
 # Expose port 8000 for the Django server
 EXPOSE 8000
 
-# Command to run the Django server and Telegram bot
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:8000 & python -m bot.bot"]
+# Command to run the Django server
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
