@@ -4,10 +4,15 @@ FROM selenium/standalone-chrome:135.0
 # Set working directory
 WORKDIR /app
 
-# Install Python dependencies
-RUN apt-get update && apt-get install -y python3 python3-pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && rm -rf /var/lib/apt/lists/*
+# Fix apt-get issues and install Python dependencies
+USER root
+RUN mkdir -p /var/lib/apt/lists/partial && \
+    chmod -R 755 /var/lib/apt/lists && \
+    rm -f /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy the entire project
 COPY . .
@@ -21,4 +26,4 @@ RUN python3 manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Command to run the Django server
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "bubblemaps_bot.wsgi:application", "--bind", "0.0.0.0:8000"]
